@@ -17,6 +17,22 @@ var handleDomo = function handleDomo(e) {
   return false;
 };
 
+var handleDelete = function handleDelete(e, domoID, csrf) {
+  e.preventDefault();
+  $("#domoMessage").animate({
+    width: 'hide'
+  }, 350);
+
+  if (!domoID) {
+    handleError('RAWR! Valid domo ID required');
+    return false;
+  }
+
+  sendAjax('POST', '/deleteDomo', "domoID=".concat(domoID, "&_csrf=").concat(csrf), function () {
+    return loadDomosFromServer();
+  });
+};
+
 var DomoForm = function DomoForm(props) {
   return /*#__PURE__*/React.createElement("form", {
     id: "domoForm",
@@ -39,9 +55,16 @@ var DomoForm = function DomoForm(props) {
     type: "text",
     name: "age",
     placeholder: "Domo Age"
+  }), /*#__PURE__*/React.createElement("label", {
+    htmlFor: "color"
+  }, "Favorite Color: "), /*#__PURE__*/React.createElement("input", {
+    id: "domoColor",
+    type: "color",
+    name: "color"
   }), /*#__PURE__*/React.createElement("input", {
     type: "hidden",
     name: "_csrf",
+    id: "csrf",
     value: props.csrf
   }), /*#__PURE__*/React.createElement("input", {
     className: "makeDomoSubmit",
@@ -59,10 +82,14 @@ var DomoList = function DomoList(props) {
     }, "No Domos yet"));
   }
 
+  console.log(props.csrf);
   var domoNodes = props.domos.map(function (domo) {
     return /*#__PURE__*/React.createElement("div", {
       key: domo._id,
-      className: "domo"
+      className: "domo",
+      style: {
+        backgroundColor: domo.color
+      }
     }, /*#__PURE__*/React.createElement("img", {
       src: "/assets/img/domoface.jpeg",
       alt: "domo face",
@@ -71,7 +98,15 @@ var DomoList = function DomoList(props) {
       className: "domoName"
     }, " Name: ", domo.name, " "), /*#__PURE__*/React.createElement("h3", {
       className: "domoAge"
-    }, " Age: ", domo.age, " "));
+    }, " Age: ", domo.age, " "), /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      className: "removeDomo",
+      onClick: function onClick(e) {
+        return handleDelete(e, domo._id, props.csrf);
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      "class": "material-icons"
+    }, "delete")));
   });
   return /*#__PURE__*/React.createElement("div", {
     className: "domoList"
@@ -81,7 +116,8 @@ var DomoList = function DomoList(props) {
 var loadDomosFromServer = function loadDomosFromServer() {
   sendAjax('GET', '/getDomos', null, function (data) {
     ReactDOM.render( /*#__PURE__*/React.createElement(DomoList, {
-      domos: data.domos
+      domos: data.domos,
+      csrf: document.querySelector('#csrf').value
     }), document.querySelector('#domos'));
   });
 };
@@ -91,7 +127,8 @@ var setup = function setup(csrf) {
     csrf: csrf
   }), document.querySelector('#makeDomo'));
   ReactDOM.render( /*#__PURE__*/React.createElement(DomoList, {
-    domos: []
+    domos: [],
+    csrf: csrf
   }), document.querySelector('#domos'));
   loadDomosFromServer();
 };

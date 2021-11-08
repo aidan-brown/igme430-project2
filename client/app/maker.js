@@ -13,6 +13,19 @@ const handleDomo = (e) => {
     return false;
 }
 
+const handleDelete = (e, domoID, csrf) => {
+    e.preventDefault();
+
+    $("#domoMessage").animate({width:'hide'}, 350);
+
+    if(!domoID){
+        handleError('RAWR! Valid domo ID required');
+        return false;
+    }
+
+    sendAjax('POST', '/deleteDomo', `domoID=${domoID}&_csrf=${csrf}`, () => loadDomosFromServer());
+}
+
 const DomoForm = (props) => {
     return (
         <form id='domoForm' name='DomoForm' onSubmit={handleDomo} action='/maker' method='POST' className='domoForm'>
@@ -20,7 +33,9 @@ const DomoForm = (props) => {
             <input id="domoName" type="text" name="name" placeholder="Domo Name"/>
             <label htmlFor="age">Age: </label>
             <input id="domoAge" type="text" name="age" placeholder="Domo Age"/>
-            <input type="hidden" name="_csrf" value={props.csrf} />
+            <label htmlFor="color">Favorite Color: </label>
+            <input id="domoColor" type="color" name="color"/>
+            <input type="hidden" name="_csrf" id="csrf" value={props.csrf} />
             <input className="makeDomoSubmit" type="submit" value="Make Domo"/>
         </form>
     )
@@ -37,10 +52,11 @@ const DomoList = (props) => {
 
     const domoNodes = props.domos.map(domo => {
         return (
-            <div key={domo._id} className='domo'>
+            <div key={domo._id} className='domo' style={{backgroundColor: domo.color}}>
                 <img src='/assets/img/domoface.jpeg' alt='domo face' className='domoFace'/>
                 <h3 className='domoName'> Name: {domo.name} </h3>
                 <h3 className='domoAge'> Age: {domo.age} </h3>
+                <button type="button" className="removeDomo" onClick={e => handleDelete(e, domo._id, props.csrf)}><span class="material-icons">delete</span></button>
             </div>
         );
     });
@@ -55,7 +71,7 @@ const DomoList = (props) => {
 const loadDomosFromServer = () => {
     sendAjax('GET', '/getDomos', null, data => {
         ReactDOM.render(
-            <DomoList domos={data.domos}/>,
+            <DomoList domos={data.domos} csrf={document.querySelector('#csrf').value}/>,
             document.querySelector('#domos')
         );
     });
@@ -68,7 +84,7 @@ const setup = csrf => {
     );
 
     ReactDOM.render(
-        <DomoList domos={[]}/>,
+        <DomoList domos={[]} csrf={csrf}/>,
         document.querySelector('#domos')
     );
 

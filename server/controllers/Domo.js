@@ -14,13 +14,14 @@ const makerPage = (req, res) => {
 };
 
 const makeDomo = (req, res) => {
-  if (!req.body.name || !req.body.age) {
-    return res.status(400).json({ error: 'RAWR! Both name and age are required' });
+  if (!req.body.name || !req.body.age || !req.body.color) {
+    return res.status(400).json({ error: 'RAWR! All fields are required' });
   }
 
   const domoData = {
     name: req.body.name,
     age: req.body.age,
+    color: req.body.color,
     owner: req.session.account._id,
   };
 
@@ -42,6 +43,21 @@ const makeDomo = (req, res) => {
   return domoPromise;
 };
 
+const deleteDomo = (req, res) => {
+  if (!req.body.domoID) {
+    return res.status(400).json({ error: 'RAWR! Valid domo ID required' });
+  }
+
+  return Domo.DomoModel.removeByID(req.body.domoID, (err, docs) => {
+    if (err) {
+      console.log(err);
+      return res.status(400).json({ error: 'An error occurred' });
+    }
+
+    return res.json({ results: docs });
+  });
+};
+
 const getDomos = (request, response) => {
   const req = request;
   const res = response;
@@ -59,3 +75,4 @@ const getDomos = (request, response) => {
 module.exports.makerPage = makerPage;
 module.exports.getDomos = getDomos;
 module.exports.makeDomo = makeDomo;
+module.exports.deleteDomo = deleteDomo;
