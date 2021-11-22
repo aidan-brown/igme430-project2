@@ -1,94 +1,296 @@
-const handleDomo = (e) => {
+const {
+    Typography,
+    Box,
+    Button, 
+    IconButton,
+    TextField,
+    Radio,
+    RadioGroup,
+    FormControlLabel,
+    Grid,
+    Stack,
+    Card,
+    CardContent,
+    CardActions,
+    CardActionArea,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+} = MaterialUI;
+
+const handleDelete = (e, taskID, csrf) => {
     e.preventDefault();
 
-    $("#domoMessage").animate({width:'hide'}, 350);
+    $("#errorMessage").text("");
 
-    if($('#domoName').val() == '' || $('#domoAge').val() == ''){
-        handleError('RAWR! All fields are required');
+    if(!taskID){
+        handleError('Valid task ID required');
         return false;
     }
 
-    sendAjax('POST', $('#domoForm').attr('action'), $('#domoForm').serialize(), () => loadDomosFromServer());
-
-    return false;
+    sendAjax('POST', '/deleteTask', `taskID=${taskID}&_csrf=${csrf}`, () => loadTasksFromServer());
 }
 
-const handleDelete = (e, domoID, csrf) => {
-    e.preventDefault();
+const TaskForm = (props) => {
+    const [open, setOpen] = React.useState(false);
+    const [taskName, setTaskName] = React.useState("");
+    const [taskDesc, setTaskDesc] = React.useState("");
 
-    $("#domoMessage").animate({width:'hide'}, 350);
+    const [nameValid, setNameValid] = React.useState(false);
+    const [descValid, setDescValid] = React.useState(false);
 
-    if(!domoID){
-        handleError('RAWR! Valid domo ID required');
+    const handleOpen = () => {
+        setOpen(true)
+    }
+
+    const handleClose = () => {
+        setOpen(false)
+        setTaskName("")
+        setTaskDesc("")
+    }
+
+    const handleTask = (e) => {
+        e.preventDefault();
+    
+        $("#createError").text("");
+    
+        if(taskName == '' || taskDesc == ''){
+            handleError('All fields are required');
+            return false;
+        }
+    
+        sendAjax('POST', '/createTask', `name=${taskName}&description=${taskDesc}&group=${props.group}&_csrf=${props.csrf}`, () => loadTasksFromServer(), "#createError");
+
+        handleClose();
+    
         return false;
     }
 
-    sendAjax('POST', '/deleteDomo', `domoID=${domoID}&_csrf=${csrf}`, () => loadDomosFromServer());
-}
-
-const DomoForm = (props) => {
     return (
-        <form id='domoForm' name='DomoForm' onSubmit={handleDomo} action='/maker' method='POST' className='domoForm'>
-            <label htmlFor="name">Name: </label>
-            <input id="domoName" type="text" name="name" placeholder="Domo Name"/>
-            <label htmlFor="age">Age: </label>
-            <input id="domoAge" type="text" name="age" placeholder="Domo Age"/>
-            <label htmlFor="color">Favorite Color: </label>
-            <input id="domoColor" type="color" name="color"/>
-            <input type="hidden" name="_csrf" id="csrf" value={props.csrf} />
-            <input className="makeDomoSubmit" type="submit" value="Make Domo"/>
-        </form>
+        <div>
+            <AddTaskButton openDialog={handleOpen}/>
+            <Dialog open={open} className='taskForm'>
+                <DialogTitle>Create New Task</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        error={!nameValid}
+                        helperText={nameValid ? "" : "Name cannot not be empty"}
+                        margin="dense"
+                        id="name"
+                        label="Task Name"
+                        type="text"
+                        fullWidth
+                        variant="standard"
+                        value={taskName}
+                        onInput={e => {
+                            setTaskName(e.target.value)
+                            setNameValid(e.target.value !== '')
+                        }}
+                    />
+                    <TextField
+                        error={!descValid}
+                        helperText={descValid ? "" : "Description cannot not be empty"}
+                        margin="dense"
+                        id="description"
+                        label="Task Description"
+                        type="text"
+                        fullWidth
+                        variant="standard"
+                        multiline
+                        rows={10}
+                        value={taskDesc}
+                        onInput={e => {
+                            setTaskDesc(e.target.value)
+                            setDescValid(e.target.value !== '')
+                        }}
+                    />
+                    <Typography color={'red'} variant="body2" id="createError"></Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose}>Cancel</Button>
+                    <Button onClick={handleTask} disabled={!nameValid || !descValid}>Create Task</Button>
+                </DialogActions>
+            </Dialog>
+        </div>
     )
 }
 
-const DomoList = (props) => {
-    if (props.domos.length === 0) {
-        return (
-            <div className='domoList'>
-                <h3 className='emptyDomo'>No Domos yet</h3>
-            </div>
-        );
+const Task = (props) => {
+    const task = props.task;
+    const [open, setOpen] = React.useState(false);
+    const [taskName, setTaskName] = React.useState(task.name);
+    const [taskDesc, setTaskDesc] = React.useState(task.description);
+    const [taskGroup, setTaskGroup] = React.useState(task.group);
+
+    const [nameValid, setNameValid] = React.useState(true);
+    const [descValid, setDescValid] = React.useState(true);
+
+    const handleOpen = () => {
+        setOpen(true)
+        setTaskName(task.name)
+        setTaskDesc(task.description)
     }
 
-    const domoNodes = props.domos.map(domo => {
+    const handleClose = () => {
+        setOpen(false)
+    }
+
+    const handleTask = (e, taskID) => {
+        e.preventDefault();
+    
+        $("#editError").text("");
+    
+        if(taskName == '' || taskDesc == ''){
+            handleError('All fields are required');
+            return false;
+        }
+    
+        sendAjax('POST', '/updateTask', `taskID=${taskID}&name=${taskName}&description=${taskDesc}&group=${taskGroup}&_csrf=${props.csrf}`, () => loadTasksFromServer(), '#editError');
+
+        handleClose();
+    
+        return false;
+    }
+
+    return (
+        <div className='task'>
+            <Card>
+                <CardActionArea onClick={handleOpen}>
+                    <CardContent sx={{bgcolor: 'rgb(231, 231, 231)'}}>
+                            <Typography variant="h5" component="div" className='taskName'>{task.name}</Typography>
+                            <Typography variant="body2" className='taskDescription'>{task.description}</Typography>
+                    </CardContent>
+                </CardActionArea>
+                <CardActions>
+                    <Box sx={{display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', width: '100%'}}>
+                        <IconButton onClick={e => handleDelete(e, task._id, props.csrf)} className="removeTask"><span className="material-icons">delete</span></IconButton>
+                    </Box>
+                </CardActions>
+            </Card>
+            <Dialog open={open} className='taskForm'>
+                <DialogTitle>Edit Task [{task.name}]</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        error={!nameValid}
+                        helperText={nameValid ? "" : "Name cannot not be empty"}
+                        margin="dense"
+                        id="name"
+                        label="Task Name"
+                        type="text"
+                        fullWidth
+                        variant="standard"
+                        value={taskName}
+                        onInput={e => {
+                            setTaskName(e.target.value)
+                            setNameValid(e.target.value !== '')
+                        }}
+                        />
+                    <TextField
+                        error={!descValid}
+                        helperText={descValid ? "" : "Description cannot not be empty"}
+                        margin="dense"
+                        id="description"
+                        label="Task Description"
+                        type="text"
+                        fullWidth
+                        variant="standard"
+                        multiline
+                        rows={10}
+                        value={taskDesc}
+                        onInput={e => {
+                            setTaskDesc(e.target.value)
+                            setDescValid(e.target.value !== '')
+                        }}
+                    />
+                    <RadioGroup row aria-label='group' name='group-radio' value={taskGroup} onChange={e => setTaskGroup(e.target.value)}>
+                        <FormControlLabel value='backlog' control={<Radio/>} label='Backlog' />
+                        <FormControlLabel value='inProgress' control={<Radio/>} label='In Progress' />
+                        <FormControlLabel value='complete' control={<Radio/>} label='Completed' />
+                    </RadioGroup>
+                    <Typography color={'red'} variant="body2" id="editError"></Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose}>Cancel</Button>
+                    <Button onClick={e => handleTask(e, task._id)} disabled={!nameValid || !descValid}>Update Task</Button>
+                </DialogActions>
+            </Dialog>
+        </div>
+        
+    );
+}
+
+const AddTaskButton = (props) => {
+    return (
+        <Card className='task'>
+            <CardActionArea onClick={props.openDialog}>
+                <CardContent>
+                    <Box display='flex' justifyContent='center' alignItems='center'>
+                        <span className="material-icons">add_circle_outline</span>
+                    </Box>
+                </CardContent>
+            </CardActionArea>
+        </Card>
+    );
+}
+
+const TaskList = (props) => {
+    const getTaskNodes = (groupName) => props.tasks.filter(task => task.group === groupName).map(task => {
         return (
-            <div key={domo._id} className='domo' style={{backgroundColor: domo.color}}>
-                <img src='/assets/img/domoface.jpeg' alt='domo face' className='domoFace'/>
-                <h3 className='domoName'> Name: {domo.name} </h3>
-                <h3 className='domoAge'> Age: {domo.age} </h3>
-                <button type="button" className="removeDomo" onClick={e => handleDelete(e, domo._id, props.csrf)}><span class="material-icons">delete</span></button>
-            </div>
+            <Task key={task._id} task={task} csrf={props.csrf}></Task>
         );
     });
 
     return (
-        <div className='domoList'>
-            {domoNodes}
-        </div>
+        <Grid container spacing={2} className='taskList'>
+            <Grid item xs={4} className='backlogTasks'>
+                <Typography variant="h4">Backlog</Typography>
+                <Stack spacing={2}>
+                    {getTaskNodes('backlog')}
+                    <TaskForm group='backlog' csrf={props.csrf}/>
+                </Stack>
+            </Grid>
+            <Grid item xs={4} className='inprogTasks'>
+                <Typography variant="h4">In Progress</Typography>
+                <Stack spacing={2}>
+                    {getTaskNodes('inProgress')}
+                    <TaskForm group='inProgress' csrf={props.csrf}/>
+                </Stack>
+            </Grid>
+            <Grid item xs={4} className='completeTasks'>
+                <Typography variant="h4">Completed</Typography>
+                <Stack spacing={2}>
+                    {getTaskNodes('complete')}
+                    <TaskForm group='complete' csrf={props.csrf}/>
+                </Stack>
+            </Grid>
+            <input type="hidden" name="_csrf" id="csrf" value={props.csrf} />
+        </Grid>
     );
 };
 
-const loadDomosFromServer = () => {
-    sendAjax('GET', '/getDomos', null, data => {
+const loadTasksFromServer = () => {
+    sendAjax('GET', '/getTasks', null, data => {
         ReactDOM.render(
-            <DomoList domos={data.domos} csrf={document.querySelector('#csrf').value}/>,
-            document.querySelector('#domos')
+            <TaskList tasks={data.tasks} csrf={document.querySelector('#csrf').value}/>,
+            document.querySelector('#tasks')
         );
     });
 };
 
 const setup = csrf => {
     ReactDOM.render(
-        <DomoForm csrf={csrf}/>,
-        document.querySelector('#makeDomo')
+        <Navbar />,
+        document.querySelector('#navbar')
     );
 
     ReactDOM.render(
-        <DomoList domos={[]} csrf={csrf}/>,
-        document.querySelector('#domos')
+        <TaskList tasks={[]} csrf={csrf}/>,
+        document.querySelector('#tasks')
     );
 
-    loadDomosFromServer();
+    loadTasksFromServer();
 }
 
 const getToken = () => {
