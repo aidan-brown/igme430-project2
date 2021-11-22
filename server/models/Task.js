@@ -73,7 +73,7 @@ TaskSchema.statics.updateByID = (taskID, data, callback) => {
     _id: convertId(taskID),
   };
 
-  return TaskModel.updateOne(task, {$set: data}, callback);
+  return TaskModel.updateOne(task, { $set: data }, callback);
 };
 
 TaskModel = mongoose.model('Task', TaskSchema);
