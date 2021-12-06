@@ -9,9 +9,9 @@ const boardPage = (req, res) => {
       return res.status(400).json({ error: 'An error occurred' });
     }
 
-    return Board.BoardModel.findByID(req.params.boardID, (err, boardDocs) => {
-      if (err) {
-        console.log(err);
+    return Board.BoardModel.findByID(req.params.boardID, (error, boardDocs) => {
+      if (error) {
+        console.log(error);
         return res.status(400).json({ error: 'An error occurred' });
       }
 

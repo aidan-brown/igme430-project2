@@ -12,7 +12,7 @@ const router = (app) => {
   app.post('/updatePassword', mid.requiresSecure, controllers.Account.updatePassword);
   app.post('/login', mid.requiresSecure, mid.requiresLogout, controllers.Account.login);
   app.post('/signup', mid.requiresSecure, mid.requiresLogout, controllers.Account.signup);
-  
+
   // Board
   app.get('/getCreatedBoards', mid.requiresSecure, controllers.Board.getCreatedBoards);
   app.get('/getSharedBoards', mid.requiresSecure, controllers.Board.getSharedBoards);
@@ -25,7 +25,7 @@ const router = (app) => {
   // Task
   app.get('/getTasks/:boardID', mid.requiresSecure, controllers.Task.getTasks);
   app.get('/board/:boardID', mid.requiresLogin, controllers.Task.boardPage);
-  
+
   app.post('/createTask', mid.requiresLogin, controllers.Task.createTask);
   app.post('/updateTask', mid.requiresLogin, controllers.Task.updateTask);
   app.post('/deleteTask', mid.requiresLogin, controllers.Task.deleteTask);

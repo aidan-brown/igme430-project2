@@ -1,6 +1,6 @@
 const models = require('../models');
 
-const { Board, Task } = models;
+const { Board } = models;
 
 const userPage = (req, res) => {
   Board.BoardModel.findByOwner(req.session.account._id, (err, docs) => {
@@ -9,7 +9,7 @@ const userPage = (req, res) => {
       return res.status(400).json({ error: 'An error occurred' });
     }
 
-    return res.render('app', { csrfToken: req.csrfToken(), boards: docs, username: req.session.account.username});
+    return res.render('app', { csrfToken: req.csrfToken(), boards: docs, username: req.session.account.username });
   });
 };
 
@@ -107,59 +107,59 @@ const getSharedBoards = (request, response) => {
 };
 
 const addMemberToBoard = (req, res) => {
-    if (!req.body.boardID || !req.body.userID){
-        return res.status(400).json({ error: 'Valid board ID and user ID required' });
+  if (!req.body.boardID || !req.body.userID) {
+    return res.status(400).json({ error: 'Valid board ID and user ID required' });
+  }
+
+  return Board.BoardModel.findByID(req.body.boardID, (err, docs) => {
+    if (err) {
+      console.log(err);
+      return res.status(400).json({ error: 'An error occurred' });
     }
 
-    return Board.BoardModel.findByID(req.body.boardID, (err, docs) => {
-        if (err) {
-            console.log(err);
-            return res.status(400).json({ error: 'An error occurred' });
-        }
+    const { members } = docs;
+    members.push(req.body.userID);
 
-        const members = docs.members;
-        members.push(req.body.userID);
+    return Board.BoardModel.updateMembersByID(req.body.boardID, members, (error, docs2) => {
+      if (error) {
+        console.log(error);
+        return res.status(400).json({ error: 'An error occurred' });
+      }
 
-        return Board.BoardModel.updateMembersByID(req.body.boardID, members, (err, docs) => {
-            if (err) {
-              console.log(err);
-              return res.status(400).json({ error: 'An error occurred' });
-            }
-        
-            return res.json({ results: docs });
-          });
-    })
-}
+      return res.json({ results: docs2 });
+    });
+  });
+};
 
 const removeMemberFromBoard = (req, res) => {
-    if (!req.body.boardID || !req.body.userID){
-        return res.status(400).json({ error: 'Valid board ID and user ID required' });
+  if (!req.body.boardID || !req.body.userID) {
+    return res.status(400).json({ error: 'Valid board ID and user ID required' });
+  }
+
+  return Board.BoardModel.findByID(req.body.boardID, (err, docs) => {
+    if (err) {
+      console.log(err);
+      return res.status(400).json({ error: 'An error occurred' });
     }
 
-    return Board.BoardModel.findByID(req.body.boardID, (err, docs) => {
-        if (err) {
-            console.log(err);
-            return res.status(400).json({ error: 'An error occurred' });
-        }
+    const { members } = docs;
+    const index = members.indexOf(req.body.userID);
+    if (index > -1) {
+      members.splice(index, 1);
+    } else {
+      return res.status(400).json({ error: 'Member does not exist for this board' });
+    }
 
-        const members = docs.members;
-        const index = members.indexOf(req.body.userID);
-        if (index > -1) {
-            members.splice(index, 1);
-        } else {
-            return res.status(400).json({ error: 'Member does not exist for this board' });
-        }
+    return Board.BoardModel.updateMembersByID(req.body.boardID, members, (error, docs2) => {
+      if (error) {
+        console.log(error);
+        return res.status(400).json({ error: 'An error occurred' });
+      }
 
-        return Board.BoardModel.updateMembersByID(req.body.boardID, members, (err, docs) => {
-            if (err) {
-              console.log(err);
-              return res.status(400).json({ error: 'An error occurred' });
-            }
-        
-            return res.json({ results: docs });
-          });
-    })
-}
+      return res.json({ results: docs2 });
+    });
+  });
+};
 
 module.exports.userPage = userPage;
 module.exports.getCreatedBoards = getCreatedBoards;

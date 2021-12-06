@@ -77,7 +77,7 @@ TaskSchema.statics.findByID = (taskId, callback) => {
 TaskSchema.statics.findByAssociation = (boardID, callback) => {
   const search = {
     board: convertId(boardID),
-  }
+  };
 
   return TaskModel.find(search).select('name description group tags board').lean().exec(callback);
 };

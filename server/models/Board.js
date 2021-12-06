@@ -9,7 +9,6 @@ const convertId = mongoose.Types.ObjectId;
 const setName = (name) => _.escape(name).trim();
 const setMembers = (members) => members;
 const setDescription = (description) => _.escape(description).trim();
-const setTasks = (tasks) => tasks;
 
 const BoardSchema = new mongoose.Schema({
   name: {
@@ -88,18 +87,19 @@ BoardSchema.statics.updateByID = (boardID, data, callback) => {
   return BoardModel.updateOne(board, { $set: data }, callback);
 };
 
-BoardSchema.statics.updateMembersByID = (boardID, members, callback) => {
+BoardSchema.statics.updateMembersByID = (boardID, membs, callback) => {
   const board = {
     _id: convertId(boardID),
   };
 
-  for(let i = 0; i < members.length; i++) {
-      members[i] = convertId(members[i])
+  const members = membs;
+  for (let i = 0; i < members.length; i++) {
+    members[i] = convertId(members[i]);
   }
 
   const membersData = {
-      members: members
-  }
+    members,
+  };
 
   return BoardModel.updateOne(board, { $set: membersData }, callback);
 };

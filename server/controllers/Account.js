@@ -87,8 +87,8 @@ const getToken = (request, response) => {
     username: '',
   };
 
-  if(req.session.account != null) {
-    csrfJSON["username"] = req.session.account.username;
+  if (req.session.account != null) {
+    csrfJSON.username = req.session.account.username;
   }
 
   res.json(csrfJSON);
@@ -98,7 +98,7 @@ const togglePremium = (req, res) => {
   const userData = {
     premium: !req.session.account.premium,
   };
-  console.log(userData)
+  console.log(userData);
   return Account.AccountModel.updateByID(req.session.account._id, userData, (err, docs) => {
     if (err) {
       console.log(err);
@@ -109,7 +109,7 @@ const togglePremium = (req, res) => {
 
     return res.json({ results: docs });
   });
-}
+};
 
 const updatePassword = (req, res) => {
   req.body.oldPass = `${req.body.oldPass}`;
@@ -130,22 +130,23 @@ const updatePassword = (req, res) => {
       password: hash,
     };
 
-    return Account.AccountModel.authenticate(req.session.account.username, req.body.oldPass, (err, account) => {
-      if (err || !account) {
-        return res.status(401).json({ error: 'Wrong password' });
-      }
-
-      return Account.AccountModel.updateByID(req.session.account._id, accountData, (err, docs) => {
-        if (err) {
-          console.log(err);
-          return res.status(400).json({ error: 'An error occurred' });
+    return Account.AccountModel.authenticate(req.session.account.username, req.body.oldPass,
+      (err, account) => {
+        if (err || !account) {
+          return res.status(401).json({ error: 'Wrong password' });
         }
-    
-        return res.json({ redirect: '/user' });
+
+        return Account.AccountModel.updateByID(req.session.account._id, accountData, (error) => {
+          if (error) {
+            console.log(error);
+            return res.status(400).json({ error: 'An error occurred' });
+          }
+
+          return res.json({ redirect: '/user' });
+        });
       });
-    });
   });
-}
+};
 
 module.exports = {
   loginPage,
@@ -154,5 +155,5 @@ module.exports = {
   signup,
   getToken,
   togglePremium,
-  updatePassword
+  updatePassword,
 };

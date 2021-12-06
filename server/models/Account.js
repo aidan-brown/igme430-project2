@@ -91,8 +91,8 @@ AccountSchema.statics.updateByID = (userID, data, callback) => {
   const user = {
     _id: convertId(userID),
   };
-  console.log(userID)
-  console.log(data)
+  console.log(userID);
+  console.log(data);
   return AccountModel.updateOne(user, { $set: data }, callback);
 };
 
