@@ -29,7 +29,7 @@ const login = (request, response) => {
 
     req.session.account = Account.AccountModel.toAPI(account);
 
-    return res.json({ redirect: '/maker' });
+    return res.json({ redirect: '/user' });
   });
 };
 
@@ -54,6 +54,7 @@ const signup = (request, response) => {
       username: req.body.username,
       salt,
       password: hash,
+      premium: false,
     };
 
     const newAccount = new Account.AccountModel(accountData);
@@ -62,7 +63,7 @@ const signup = (request, response) => {
 
     savePromise.then(() => {
       req.session.account = Account.AccountModel.toAPI(newAccount);
-      res.json({ redirect: '/maker' });
+      res.json({ redirect: '/user' });
     });
 
     savePromise.catch((err) => {
@@ -83,10 +84,68 @@ const getToken = (request, response) => {
 
   const csrfJSON = {
     csrfToken: req.csrfToken(),
+    username: '',
   };
+
+  if(req.session.account != null) {
+    csrfJSON["username"] = req.session.account.username;
+  }
 
   res.json(csrfJSON);
 };
+
+const togglePremium = (req, res) => {
+  const userData = {
+    premium: !req.session.account.premium,
+  };
+  console.log(userData)
+  return Account.AccountModel.updateByID(req.session.account._id, userData, (err, docs) => {
+    if (err) {
+      console.log(err);
+      return res.status(400).json({ error: 'An error occurred' });
+    }
+
+    req.session.account.premium = userData.premium;
+
+    return res.json({ results: docs });
+  });
+}
+
+const updatePassword = (req, res) => {
+  req.body.oldPass = `${req.body.oldPass}`;
+  req.body.pass = `${req.body.pass}`;
+  req.body.pass2 = `${req.body.pass2}`;
+
+  if (!req.body.oldPass || !req.body.pass || !req.body.pass2) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  if (req.body.pass !== req.body.pass2) {
+    return res.status(400).json({ error: 'Passwords do not match' });
+  }
+
+  return Account.AccountModel.generateHash(req.body.pass, (salt, hash) => {
+    const accountData = {
+      salt,
+      password: hash,
+    };
+
+    return Account.AccountModel.authenticate(req.session.account.username, req.body.oldPass, (err, account) => {
+      if (err || !account) {
+        return res.status(401).json({ error: 'Wrong password' });
+      }
+
+      return Account.AccountModel.updateByID(req.session.account._id, accountData, (err, docs) => {
+        if (err) {
+          console.log(err);
+          return res.status(400).json({ error: 'An error occurred' });
+        }
+    
+        return res.json({ redirect: '/user' });
+      });
+    });
+  });
+}
 
 module.exports = {
   loginPage,
@@ -94,4 +153,6 @@ module.exports = {
   logout,
   signup,
   getToken,
+  togglePremium,
+  updatePassword
 };

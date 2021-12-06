@@ -22,10 +22,33 @@ html, body {
     margin-top: 1rem;
 }
 
+#boards {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    margin-top: 1rem;
+}
+
 .taskList {
     max-width: 1200px;
 }
 
 .taskDescription {
     white-space: pre-line;
+}
+
+.board {
+    width: 300px;
+    height: 150px;
+    margin: 0 1rem;
+}
+
+#boardLists {
+    width: 90%;
+}
+
+#logo {
+    width: 3rem;
+    margin-right: .25rem;
 }

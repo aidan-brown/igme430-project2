@@ -15,6 +15,8 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 var _MaterialUI = MaterialUI,
     Typography = _MaterialUI.Typography,
     Button = _MaterialUI.Button,
+    Link = _MaterialUI.Link,
+    Box = _MaterialUI.Box,
     TextField = _MaterialUI.TextField,
     Radio = _MaterialUI.Radio,
     RadioGroup = _MaterialUI.RadioGroup,
@@ -118,11 +120,24 @@ var LoginWindow = function LoginWindow(props) {
     color: 'red',
     variant: "body2",
     id: "loginError"
-  })), /*#__PURE__*/React.createElement(CardActions, null, /*#__PURE__*/React.createElement(Button, {
-    onClick: handleOpen
-  }, "Sign Up"), /*#__PURE__*/React.createElement(Button, {
+  })), /*#__PURE__*/React.createElement(CardActions, {
+    justify: "space-between"
+  }, /*#__PURE__*/React.createElement(Box, {
+    sx: {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      width: '100%'
+    }
+  }, /*#__PURE__*/React.createElement(Link, {
+    href: "#",
+    onClick: handleOpen,
+    variant: "caption"
+  }, "I don't have an account"), /*#__PURE__*/React.createElement(Button, {
+    variant: "contained",
     onClick: handleLogin
-  }, "Login"))), /*#__PURE__*/React.createElement(SignupWindow, {
+  }, "Login")))), /*#__PURE__*/React.createElement(SignupWindow, {
     open: open,
     handleClose: handleClose,
     csrf: props.csrf
@@ -232,6 +247,7 @@ var SignupWindow = function SignupWindow(props) {
   })), /*#__PURE__*/React.createElement(DialogActions, null, /*#__PURE__*/React.createElement(Button, {
     onClick: props.handleClose
   }, "Cancel"), /*#__PURE__*/React.createElement(Button, {
+    variant: "contained",
     onClick: handleSignup,
     disabled: !usernameValid || !passwordValid || !password2Valid
   }, "Sign Up")));
@@ -269,12 +285,14 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 var _MaterialUI = MaterialUI,
     Typography = _MaterialUI.Typography,
+    Box = _MaterialUI.Box,
     AppBar = _MaterialUI.AppBar,
     Toolbar = _MaterialUI.Toolbar,
     Menu = _MaterialUI.Menu,
     MenuItem = _MaterialUI.MenuItem,
     IconButton = _MaterialUI.IconButton,
-    Link = _MaterialUI.Link;
+    Link = _MaterialUI.Link,
+    SvgIcon = _MaterialUI.SvgIcon;
 
 var handleError = function handleError(message, errorId) {
   $(errorId).text(message);
@@ -308,6 +326,41 @@ var Navbar = function Navbar(props) {
       anchorEl = _React$useState2[0],
       setAnchorEl = _React$useState2[1];
 
+  var _React$useState3 = React.useState(false),
+      _React$useState4 = _slicedToArray(_React$useState3, 2),
+      open = _React$useState4[0],
+      setOpen = _React$useState4[1];
+
+  var _React$useState5 = React.useState(''),
+      _React$useState6 = _slicedToArray(_React$useState5, 2),
+      passOld = _React$useState6[0],
+      setPassOld = _React$useState6[1];
+
+  var _React$useState7 = React.useState(''),
+      _React$useState8 = _slicedToArray(_React$useState7, 2),
+      pass = _React$useState8[0],
+      setPass = _React$useState8[1];
+
+  var _React$useState9 = React.useState(''),
+      _React$useState10 = _slicedToArray(_React$useState9, 2),
+      pass2 = _React$useState10[0],
+      setPass2 = _React$useState10[1];
+
+  var _React$useState11 = React.useState(false),
+      _React$useState12 = _slicedToArray(_React$useState11, 2),
+      passOldValid = _React$useState12[0],
+      setPassOldValid = _React$useState12[1];
+
+  var _React$useState13 = React.useState(false),
+      _React$useState14 = _slicedToArray(_React$useState13, 2),
+      passValid = _React$useState14[0],
+      setPassValid = _React$useState14[1];
+
+  var _React$useState15 = React.useState(false),
+      _React$useState16 = _slicedToArray(_React$useState15, 2),
+      pass2Valid = _React$useState16[0],
+      setPass2Valid = _React$useState16[1];
+
   var handleMenu = function handleMenu(e) {
     setAnchorEl(e.currentTarget);
   };
@@ -316,15 +369,70 @@ var Navbar = function Navbar(props) {
     setAnchorEl(null);
   };
 
+  var handlePassOpen = function handlePassOpen() {
+    setOpen(true);
+    setPassOld('');
+    setPass('');
+    setPass2('');
+  };
+
+  var handlePassClose = function handlePassClose() {
+    setOpen(false);
+  };
+
+  var handleUpdatePassword = function handleUpdatePassword(e) {
+    e.preventDefault();
+    $('#passError').text("");
+
+    if (passOld == '' || pass == '' || pass2 == '') {
+      handleError('All fields are required', '#passError');
+      return false;
+    }
+
+    if (pass !== pass2) {
+      handleError('Passwords do not match', '#passError');
+      return false;
+    }
+
+    return sendAjax('POST', '/updatePassword', "oldPass=".concat(passOld, "&pass=").concat(pass, "&pass2=").concat(pass2, "&_csrf=").concat(document.querySelector('#csrf').value), function () {
+      handlePassClose();
+      location.reload();
+    }, '#passError');
+  };
+
+  var togglePremium = function togglePremium(e) {
+    e.preventDefault();
+    return sendAjax('POST', '/togglePremium', "_csrf=".concat(document.querySelector('#csrf').value), function () {
+      location.reload();
+    });
+  };
+
   return /*#__PURE__*/React.createElement(AppBar, {
     position: "static"
-  }, /*#__PURE__*/React.createElement(Toolbar, null, /*#__PURE__*/React.createElement(Typography, {
-    variant: "h4",
+  }, /*#__PURE__*/React.createElement(Toolbar, null, /*#__PURE__*/React.createElement(Link, {
+    underline: "none",
+    href: "/user",
+    sx: {
+      flexGrow: 1,
+      color: "white",
+      display: "flex",
+      flexDirection: "row",
+      justifyContent: "flex-start",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("img", {
+    src: "/assets/svg/fello_logo.svg",
+    alt: "Fello logo",
+    id: "logo"
+  }), /*#__PURE__*/React.createElement(Typography, {
+    variant: "h4"
+  }, "Fello")), /*#__PURE__*/React.createElement(Typography, {
+    variant: "h5",
     component: "div",
     sx: {
       flexGrow: 1
     }
-  }, "Fello"), window.location.pathname == '/maker' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(IconButton, {
+  }, props.username), window.location.pathname !== '/' && window.location.pathname !== '/login' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(IconButton, {
     "aria-label": "menu",
     "aria-controls": "menu-appbar",
     "aria-haspopup": "true",
@@ -347,7 +455,72 @@ var Navbar = function Navbar(props) {
     open: Boolean(anchorEl),
     onClose: handleClose
   }, /*#__PURE__*/React.createElement(MenuItem, null, /*#__PURE__*/React.createElement(Link, {
+    href: "#",
+    onClick: togglePremium,
+    underline: "none"
+  }, "Toggle Premium")), /*#__PURE__*/React.createElement(MenuItem, null, /*#__PURE__*/React.createElement(Link, {
+    href: "#",
+    onClick: handlePassOpen,
+    underline: "none"
+  }, "Change Password")), /*#__PURE__*/React.createElement(MenuItem, null, /*#__PURE__*/React.createElement(Link, {
     href: "/logout",
     underline: "none"
-  }, "Logout"))))));
+  }, "Logout"))))), /*#__PURE__*/React.createElement(Dialog, {
+    open: open,
+    className: "passForm"
+  }, /*#__PURE__*/React.createElement(DialogContent, null, /*#__PURE__*/React.createElement(TextField, {
+    error: !passOldValid,
+    helperText: passOldValid ? "" : "Old Password cannot not be empty",
+    margin: "dense",
+    id: "oldPass",
+    label: "Old Password",
+    type: "password",
+    fullWidth: true,
+    variant: "standard",
+    value: passOld,
+    onInput: function onInput(e) {
+      setPassOld(e.target.value);
+      setPassOldValid(e.target.value !== '');
+    }
+  }), /*#__PURE__*/React.createElement(TextField, {
+    error: !passValid,
+    helperText: passValid ? "" : "Old Password cannot not be empty",
+    margin: "dense",
+    id: "pass",
+    label: "New Password",
+    type: "password",
+    fullWidth: true,
+    variant: "standard",
+    value: pass,
+    onInput: function onInput(e) {
+      setPass(e.target.value);
+      setPassValid(e.target.value !== '' && e.target.value === pass2);
+      setPass2Valid(pass2 !== '' && e.target.value === pass2);
+    }
+  }), /*#__PURE__*/React.createElement(TextField, {
+    error: !pass2Valid,
+    helperText: pass2Valid ? "" : "Old Password cannot not be empty",
+    margin: "dense",
+    id: "pass2",
+    label: "Confirm New Password",
+    type: "password",
+    fullWidth: true,
+    variant: "standard",
+    value: pass2,
+    onInput: function onInput(e) {
+      setPass2(e.target.value);
+      setPass2Valid(e.target.value !== '' && e.target.value === pass);
+      setPassValid(pass !== '' && e.target.value === pass);
+    }
+  }), /*#__PURE__*/React.createElement(Typography, {
+    color: 'red',
+    variant: "body2",
+    id: "passError"
+  })), /*#__PURE__*/React.createElement(DialogActions, null, /*#__PURE__*/React.createElement(Button, {
+    onClick: handlePassClose
+  }, "Cancel"), /*#__PURE__*/React.createElement(Button, {
+    variant: "contained",
+    onClick: handleUpdatePassword,
+    disabled: !passOldValid || !passValid || !pass2Valid
+  }, "Update Password"))));
 };

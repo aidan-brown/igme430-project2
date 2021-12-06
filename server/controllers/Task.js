@@ -1,20 +1,27 @@
 const models = require('../models');
 
-const { Task } = models;
+const { Board, Task } = models;
 
-const makerPage = (req, res) => {
-  Task.TaskModel.findByOwner(req.session.account._id, (err, docs) => {
+const boardPage = (req, res) => {
+  Task.TaskModel.findByAssociation(req.params.boardID, (err, docs) => {
     if (err) {
       console.log(err);
       return res.status(400).json({ error: 'An error occurred' });
     }
 
-    return res.render('app', { csrfToken: req.csrfToken(), tasks: docs });
+    return Board.BoardModel.findByID(req.params.boardID, (err, boardDocs) => {
+      if (err) {
+        console.log(err);
+        return res.status(400).json({ error: 'An error occurred' });
+      }
+
+      return res.render('board', { csrfToken: req.csrfToken(), tasks: docs, board: boardDocs[0] });
+    });
   });
 };
 
 const createTask = (req, res) => {
-  if (!req.body.name || !req.body.description || !req.body.group) {
+  if (!req.body.name || !req.body.description || !req.body.group || !req.body.boardID) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
@@ -23,6 +30,7 @@ const createTask = (req, res) => {
     description: req.body.description,
     group: req.body.group,
     tags: [],
+    board: req.body.boardID,
     owner: req.session.account._id,
   };
 
@@ -30,7 +38,7 @@ const createTask = (req, res) => {
 
   const taskPromise = newTask.save();
 
-  taskPromise.then(() => res.json({ redirect: '/maker' }));
+  taskPromise.then(() => res.json({ redirect: '/board' }));
 
   taskPromise.catch((err) => {
     console.log(err);
@@ -85,7 +93,7 @@ const getTasks = (request, response) => {
   const req = request;
   const res = response;
 
-  return Task.TaskModel.findByOwner(req.session.account._id, (err, docs) => {
+  return Task.TaskModel.findByAssociation(req.params.boardID, (err, docs) => {
     if (err) {
       console.log(err);
       return res.status(400).json({ error: 'An error occurred' });
@@ -95,7 +103,7 @@ const getTasks = (request, response) => {
   });
 };
 
-module.exports.makerPage = makerPage;
+module.exports.boardPage = boardPage;
 module.exports.getTasks = getTasks;
 module.exports.createTask = createTask;
 module.exports.updateTask = updateTask;

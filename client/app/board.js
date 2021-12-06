@@ -20,19 +20,6 @@ const {
     DialogTitle,
 } = MaterialUI;
 
-const handleDelete = (e, taskID, csrf) => {
-    e.preventDefault();
-
-    $("#errorMessage").text("");
-
-    if(!taskID){
-        handleError('Valid task ID required');
-        return false;
-    }
-
-    sendAjax('POST', '/deleteTask', `taskID=${taskID}&_csrf=${csrf}`, () => loadTasksFromServer());
-}
-
 const TaskForm = (props) => {
     const [open, setOpen] = React.useState(false);
     const [taskName, setTaskName] = React.useState("");
@@ -61,7 +48,7 @@ const TaskForm = (props) => {
             return false;
         }
     
-        sendAjax('POST', '/createTask', `name=${taskName}&description=${taskDesc}&group=${props.group}&_csrf=${props.csrf}`, () => loadTasksFromServer(), "#createError");
+        sendAjax('POST', '/createTask', `name=${taskName}&description=${taskDesc}&group=${props.group}&boardID=${document.querySelector('#boardID').value}&_csrf=${props.csrf}`, () => loadTasksFromServer(), "#createError");
 
         handleClose();
     
@@ -110,7 +97,7 @@ const TaskForm = (props) => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose}>Cancel</Button>
-                    <Button onClick={handleTask} disabled={!nameValid || !descValid}>Create Task</Button>
+                    <Button variant="contained" onClick={handleTask} disabled={!nameValid || !descValid}>Create Task</Button>
                 </DialogActions>
             </Dialog>
         </div>
@@ -152,6 +139,19 @@ const Task = (props) => {
         handleClose();
     
         return false;
+    }
+
+    const handleDelete = (e, taskID, csrf) => {
+        e.preventDefault();
+    
+        $("#errorMessage").text("");
+    
+        if(!taskID){
+            handleError('Valid task ID required');
+            return false;
+        }
+    
+        sendAjax('POST', '/deleteTask', `taskID=${taskID}&_csrf=${csrf}`, () => loadTasksFromServer());
     }
 
     return (
@@ -213,7 +213,7 @@ const Task = (props) => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleClose}>Cancel</Button>
-                    <Button onClick={e => handleTask(e, task._id)} disabled={!nameValid || !descValid}>Update Task</Button>
+                    <Button variant="contained" onClick={e => handleTask(e, task._id)} disabled={!nameValid || !descValid}>Update Task</Button>
                 </DialogActions>
             </Dialog>
         </div>
@@ -271,7 +271,7 @@ const TaskList = (props) => {
 };
 
 const loadTasksFromServer = () => {
-    sendAjax('GET', '/getTasks', null, data => {
+    sendAjax('GET', `/getTasks/${document.querySelector('#boardID').value}`, null, data => {
         ReactDOM.render(
             <TaskList tasks={data.tasks} csrf={document.querySelector('#csrf').value}/>,
             document.querySelector('#tasks')
@@ -279,23 +279,40 @@ const loadTasksFromServer = () => {
     });
 };
 
-const setup = csrf => {
+const setup = (csrf, username) => {
     ReactDOM.render(
-        <Navbar />,
+        <Navbar username={username} />,
         document.querySelector('#navbar')
     );
 
-    ReactDOM.render(
-        <TaskList tasks={[]} csrf={csrf}/>,
-        document.querySelector('#tasks')
-    );
+    if(window.location.pathname.includes('/board')) {
+        ReactDOM.render(
+            <TaskList tasks={[]} csrf={csrf}/>,
+            document.querySelector('#tasks')
+        );
+        ReactDOM.render(
+            <Typography variant="h2" id='boardName'>{document.querySelector('#boardName').innerHTML}</Typography>,
+            document.querySelector('#boardName')
+        );
+        ReactDOM.render(
+            <Typography variant="h6" id='boardDescription'>{document.querySelector('#boardDescription').innerHTML}</Typography>,
+            document.querySelector('#boardDescription')
+        );
+    
+        loadTasksFromServer();
+    } else if(window.location.pathname == '/user') {
+        ReactDOM.render(
+            <BoardList createdBoards={[]} sharedBoards={[]} csrf={csrf}/>,
+            document.querySelector('#boards')
+        );
 
-    loadTasksFromServer();
+        loadBoardsFromServer();
+    }
 }
 
 const getToken = () => {
     sendAjax('GET', '/getToken', null, (result) => {
-        setup(result.csrfToken);
+        setup(result.csrfToken, result.username);
     });
 };
 

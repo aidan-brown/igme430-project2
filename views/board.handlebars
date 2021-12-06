@@ -15,11 +15,14 @@
 </head>
 <body>
   <nav id="navbar"></nav>
-  <section id="boards">
+  <div id="boardName">{{board.name}}</div>
+  <div id="boardDescription">{{board.description}}</div>
+  <section id="tasks">
   </section>
   <div id="sysMessage">
     <h3><span id="errorMessage"></span></h3>
   </div>
+  <input id="boardID" type="hidden" value={{board._id}}>
   <script src="/assets/bundle.js"></script>
 </body>
 </html>

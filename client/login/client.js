@@ -1,6 +1,8 @@
 const {
     Typography,
     Button, 
+    Link,
+    Box,
     TextField,
     Radio,
     RadioGroup,
@@ -86,9 +88,11 @@ const LoginWindow = (props) => {
                         />
                     <Typography color={'red'} variant="body2" id="loginError"></Typography>
                 </CardContent>
-                <CardActions>
-                    <Button onClick={handleOpen}>Sign Up</Button>
-                    <Button onClick={handleLogin}>Login</Button>
+                <CardActions justify="space-between">
+                    <Box sx={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%'}}>
+                        <Link href="#" onClick={handleOpen} variant="caption">I don't have an account</Link>
+                        <Button variant="contained" onClick={handleLogin}>Login</Button>
+                    </Box>
                 </CardActions>
             </Card>
             <SignupWindow open={open} handleClose={handleClose} csrf={props.csrf}/>
@@ -179,7 +183,7 @@ const SignupWindow = (props) => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={props.handleClose}>Cancel</Button>
-                    <Button onClick={handleSignup} disabled={!usernameValid || !passwordValid || !password2Valid}>Sign Up</Button>
+                    <Button variant="contained" onClick={handleSignup} disabled={!usernameValid || !passwordValid || !password2Valid}>Sign Up</Button>
                 </DialogActions>
             </Dialog>
     );

@@ -35,6 +35,11 @@ const TaskSchema = new mongoose.Schema({
     required: true,
     set: setTags,
   },
+  board: {
+    type: mongoose.Schema.ObjectId,
+    required: true,
+    ref: 'Board',
+  },
   owner: {
     type: mongoose.Schema.ObjectId,
     required: true,
@@ -50,6 +55,7 @@ TaskSchema.statics.toAPI = (doc) => ({
   name: doc.name,
   description: doc.description,
   tags: doc.tags,
+  board: doc.board,
 });
 
 TaskSchema.statics.findByOwner = (ownerId, callback) => {
@@ -57,7 +63,23 @@ TaskSchema.statics.findByOwner = (ownerId, callback) => {
     owner: convertId(ownerId),
   };
 
-  return TaskModel.find(search).select('name description group tags').lean().exec(callback);
+  return TaskModel.find(search).select('name description group tags board').lean().exec(callback);
+};
+
+TaskSchema.statics.findByID = (taskId, callback) => {
+  const search = {
+    _id: convertId(taskId),
+  };
+
+  return TaskModel.find(search).select('name description group tags board').lean().exec(callback);
+};
+
+TaskSchema.statics.findByAssociation = (boardID, callback) => {
+  const search = {
+    board: convertId(boardID),
+  }
+
+  return TaskModel.find(search).select('name description group tags board').lean().exec(callback);
 };
 
 TaskSchema.statics.removeByID = (taskID, callback) => {

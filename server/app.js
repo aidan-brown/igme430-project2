@@ -13,7 +13,7 @@ const csrf = require('csurf');
 const redis = require('redis');
 
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
-const dbURL = process.env.MONGODB_URI || 'mongodb://localhost/Fello';
+const dbURL = process.env.MONGODB_URI || 'mongodb://localhost/Fello2';
 
 mongoose.connect(dbURL, (err) => {
   if (err) {

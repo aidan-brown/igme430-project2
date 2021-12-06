@@ -7,6 +7,7 @@ let AccountModel = {};
 const iterations = 10000;
 const saltLength = 64;
 const keyLength = 64;
+const convertId = mongoose.Types.ObjectId;
 
 const AccountSchema = new mongoose.Schema({
   username: {
@@ -24,6 +25,10 @@ const AccountSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  premium: {
+    type: Boolean,
+    required: true,
+  },
   createdDate: {
     type: Date,
     default: Date.now,
@@ -33,6 +38,7 @@ const AccountSchema = new mongoose.Schema({
 AccountSchema.statics.toAPI = (doc) => ({
   // _id is built into your mongo document and is guaranteed to be unique
   username: doc.username,
+  premium: doc.premium,
   _id: doc._id,
 });
 
@@ -79,6 +85,15 @@ AccountSchema.statics.authenticate = (username, password, callback) => {
       return callback();
     });
   });
+};
+
+AccountSchema.statics.updateByID = (userID, data, callback) => {
+  const user = {
+    _id: convertId(userID),
+  };
+  console.log(userID)
+  console.log(data)
+  return AccountModel.updateOne(user, { $set: data }, callback);
 };
 
 AccountModel = mongoose.model('Account', AccountSchema);
